@@ -1,13 +1,18 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings
 from app.routes import auth, questions, history, answers
 
+root_path = "/_/backend" if os.getenv("VERCEL") else ""
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Backend API for AI Interview Question Generator",
-    version="1.0.0"
+    version="1.0.0",
+    root_path=root_path
 )
+
 
 # CORS configurations (for React frontend connection)
 app.add_middleware(
