@@ -20,7 +20,29 @@ class Settings(BaseSettings):
     
     # Local fallback config
     LOCAL_JWT_SECRET: str = os.getenv("LOCAL_JWT_SECRET", "super-secret-key-for-local-development-only-change-me")
-    LOCAL_DB_FILE: str = "local_interview.db"
+    
+    @property
+    def LOCAL_DB_FILE(self) -> str:
+        db_name = "local_interview.db"
+        if os.getenv("VERCEL"):
+            tmp_db = os.path.join("/tmp", db_name)
+            if not os.path.exists(tmp_db):
+                import shutil
+                # The bundled db should be in the backend root
+                bundled_db = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), db_name)
+                if os.path.exists(bundled_db):
+                    try:
+                        shutil.copy2(bundled_db, tmp_db)
+                    except Exception as e:
+                        print(f"Error copying SQLite database on Vercel: {e}")
+                elif os.path.exists(db_name):
+                    try:
+                        shutil.copy2(db_name, tmp_db)
+                    except Exception as e:
+                        print(f"Error copying SQLite database on Vercel: {e}")
+            return tmp_db
+        return db_name
+
     
     @property
     def is_supabase_configured(self) -> bool:
